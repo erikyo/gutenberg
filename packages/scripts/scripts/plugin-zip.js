@@ -10,11 +10,29 @@ const { stdout } = require( 'process' );
 /**
  * Internal dependencies
  */
-const { hasPackageProp, getPackageProp } = require( '../utils' );
+const { hasPackageProp, getPackageProp, getArgFromCLI, hasArgInCLI } = require( '../utils' );
 
 const name = getPackageProp( 'name' );
-stdout.write( `Creating archive for \`${ name }\` plugin... 🎁\n\n` );
+
+const version = getPackageProp( 'version' );
+
 const zip = new AdmZip();
+
+stdout.write( `Creating archive for \`${ name }\` plugin... 🎁\n\n` );
+
+/* Adding the output directory definition */
+let outDir = './';
+
+if (hasArgInCLI('--outDir')) {
+	outDir = './' + getArgFromCLI('--outDir') + '/';
+}
+
+/* If needed, this string is appended at the end of zip filename */
+let filenameOpt = '';
+filenameOpt += hasArgInCLI( '--with-version' ) ? '-' + version : '';
+
+const filename = outDir + name + filenameOpt + `.zip`;
+stdout.write( `Zip output destination file: ${ filename }\n` );
 
 let files = [];
 if ( hasPackageProp( 'files' ) ) {
@@ -53,5 +71,5 @@ files.forEach( ( file ) => {
 	zip.addLocalFile( file, zipDirectory !== '.' ? zipDirectory : '' );
 } );
 
-zip.writeZip( `./${ name }.zip` );
-stdout.write( `\nDone. \`${ name }.zip\` is ready! 🎉\n` );
+zip.writeZip( filename );
+stdout.write( `\nDone. \`${ filename }\` is ready! 🎉\n` );
