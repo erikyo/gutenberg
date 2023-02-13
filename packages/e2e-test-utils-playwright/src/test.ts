@@ -8,7 +8,7 @@ import type { ConsoleMessage } from '@playwright/test';
 /**
  * Internal dependencies
  */
-import { Admin, Editor, PageUtils, RequestUtils, SiteEditor } from './index';
+import { Admin, Editor, PageUtils, RequestUtils } from './index';
 
 const STORAGE_STATE_PATH =
 	process.env.STORAGE_STATE_PATH ||
@@ -26,7 +26,7 @@ const OBSERVED_CONSOLE_MESSAGE_TYPES = [ 'warn', 'error' ] as const;
  * Adds a page event handler to emit uncaught exception to process if one of
  * the observed console logging types is encountered.
  *
- * @param  message The console message.
+ * @param message The console message.
  */
 function observeConsoleLogging( message: ConsoleMessage ) {
 	const type = message.type();
@@ -102,7 +102,6 @@ const test = base.extend<
 		editor: Editor;
 		pageUtils: PageUtils;
 		snapshotConfig: void;
-		siteEditor: SiteEditor;
 	},
 	{
 		requestUtils: RequestUtils;
@@ -113,9 +112,6 @@ const test = base.extend<
 	},
 	editor: async ( { page }, use ) => {
 		await use( new Editor( { page } ) );
-	},
-	siteEditor: async ( { page }, use ) => {
-		await use( new SiteEditor( { page } ) );
 	},
 	page: async ( { page }, use ) => {
 		page.on( 'console', observeConsoleLogging );

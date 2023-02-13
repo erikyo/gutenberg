@@ -3,11 +3,9 @@
  */
 import {
 	__experimentalItemGroup as ItemGroup,
-	__experimentalHStack as HStack,
-	Button,
+	__experimentalItem as Item,
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { useDispatch, useSelect } from '@wordpress/data';
 import { useEntityRecords } from '@wordpress/core-data';
 import { decodeEntities } from '@wordpress/html-entities';
 import { useViewportMatch } from '@wordpress/compose';
@@ -18,24 +16,7 @@ import { useViewportMatch } from '@wordpress/compose';
 import SidebarNavigationScreen from '../sidebar-navigation-screen';
 import { useLink } from '../routes/link';
 import SidebarNavigationItem from '../sidebar-navigation-item';
-import { useLocation } from '../routes';
-import { store as editSiteStore } from '../../store';
-import getIsListPage from '../../utils/get-is-list-page';
 import AddNewTemplate from '../add-new-template';
-
-function omit( object, keys ) {
-	return Object.fromEntries(
-		Object.entries( object ).filter( ( [ key ] ) => ! keys.includes( key ) )
-	);
-}
-
-const Item = ( { item } ) => {
-	const linkInfo = useLink( item.params );
-	const props = item.params
-		? { ...omit( item, 'params' ), ...linkInfo }
-		: item;
-	return <SidebarNavigationItem { ...props } />;
-};
 
 const config = {
 	wp_template: {
@@ -58,25 +39,19 @@ const config = {
 	},
 };
 
+const TemplateItem = ( { postType, postId, ...props } ) => {
+	const linkInfo = useLink( {
+		postType,
+		postId,
+		path: config[ postType ].path + '/single',
+	} );
+	return <SidebarNavigationItem { ...linkInfo } { ...props } />;
+};
+
 export default function SidebarNavigationScreenTemplates( {
 	postType = 'wp_template',
 } ) {
-	const { params } = useLocation();
-	const { __unstableSetCanvasMode } = useDispatch( editSiteStore );
 	const isMobileViewport = useViewportMatch( 'medium', '<' );
-	const isListPage = getIsListPage( params );
-	const isEditorPage = ! isListPage;
-
-	// Ideally the URL params would be enough.
-	// Loading the editor should ideally redirect to the home page
-	// instead of fetching the edited entity here.
-	const { editedPostId, editedPostType } = useSelect( ( select ) => {
-		const { getEditedPostType, getEditedPostId } = select( editSiteStore );
-		return {
-			editedPostId: getEditedPostId(),
-			editedPostType: getEditedPostType(),
-		};
-	}, [] );
 
 	const { records: templates, isResolving: isLoading } = useEntityRecords(
 		'postType',
@@ -86,94 +61,60 @@ export default function SidebarNavigationScreenTemplates( {
 		}
 	);
 
-	let items = [];
-	if ( isLoading ) {
-		items = [
-			{
-				children: config[ postType ].labels.loading,
-			},
-		];
-	} else if ( ! templates && ! isLoading ) {
-		items = [
-			{
-				children: config[ postType ].labels.notFound,
-			},
-		];
-	} else {
-		items = templates?.map( ( template ) => ( {
-			params: {
-				postType,
-				postId: template.id,
-			},
-			children: decodeEntities(
-				template.title?.rendered || template.slug
-			),
-			'aria-current':
-				( params.postType === postType &&
-					params.postId === template.id ) ||
-				// This is a special case for the home page.
-				( editedPostId === template.id &&
-					editedPostType === postType &&
-					!! params.postId )
-					? 'page'
-					: undefined,
-		} ) );
-	}
+	const browseAllLink = useLink( {
+		postType,
+		postId: undefined,
+		path: config[ postType ].path + '/all',
+	} );
 
 	return (
 		<SidebarNavigationScreen
 			path={ config[ postType ].path }
-			parentTitle={ __( 'Design' ) }
-			title={
-				<HStack style={ { minHeight: 36 } } justify="space-between">
-					<div style={ { flexShrink: 0 } }>
-						{ config[ postType ].labels.title }
-					</div>
-					{ ! isMobileViewport && (
-						<HStack spacing={ 2 } justify="right">
-							<AddNewTemplate
-								templateType={ postType }
-								toggleProps={ {
-									className:
-										'edit-site-sidebar-navigation-screen-templates__add-button',
-								} }
-							/>
-							{ isEditorPage && (
-								<Button
-									className="edit-site-layout__edit-button"
-									label={ __( 'Open the editor' ) }
-									onClick={ () => {
-										__unstableSetCanvasMode( 'edit' );
-									} }
-								>
-									{ __( 'Edit' ) }
-								</Button>
-							) }
-						</HStack>
-					) }
-				</HStack>
+			title={ config[ postType ].labels.title }
+			actions={
+				! isMobileViewport && (
+					<AddNewTemplate
+						templateType={ postType }
+						toggleProps={ {
+							className:
+								'edit-site-sidebar-navigation-screen-templates__add-button',
+						} }
+					/>
+				)
 			}
 			content={
 				<>
-					<ItemGroup>
-						{ items.map( ( item, index ) => (
-							<Item item={ item } key={ index } />
-						) ) }
-
-						<SidebarNavigationItem
-							className="edit-site-sidebar-navigation-screen-templates__see-all"
-							{ ...useLink( {
-								postType,
-								postId: undefined,
-							} ) }
-							aria-current={
-								params.postType === postType && ! params.postId
-									? 'page'
-									: undefined
-							}
-							children={ config[ postType ].labels.manage }
-						/>
-					</ItemGroup>
+					{ isLoading && config[ postType ].labels.loading }
+					{ ! isLoading && (
+						<ItemGroup>
+							{ ! templates?.length && (
+								<Item>
+									{ config[ postType ].labels.notFound }
+								</Item>
+							) }
+							{ ( templates ?? [] ).map( ( template ) => (
+								<TemplateItem
+									postType={ postType }
+									postId={ template.id }
+									key={ template.id }
+								>
+									{ decodeEntities(
+										template.title?.rendered ||
+											template.slug
+									) }
+								</TemplateItem>
+							) ) }
+							{ ! isMobileViewport && (
+								<SidebarNavigationItem
+									className="edit-site-sidebar-navigation-screen-templates__see-all"
+									{ ...browseAllLink }
+									children={
+										config[ postType ].labels.manage
+									}
+								/>
+							) }
+						</ItemGroup>
+					) }
 				</>
 			}
 		/>
