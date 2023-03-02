@@ -80,6 +80,7 @@ export { plugins };
  */
 export const combineReducers = turboCombineReducers;
 
+/** @typedef {import('./types').SelectFunction} StoreDescriptor */
 /**
  * Given a store descriptor, returns an object of the store's selectors.
  * The selector functions are been pre-bound to pass the current state automatically.
@@ -93,11 +94,10 @@ export const combineReducers = turboCombineReducers;
  * ```js
  * import { select } from '@wordpress/data';
  * import { store as myCustomStore } from 'my-custom-store';
- *
  * select( myCustomStore ).getPrice( 'hammer' );
  * ```
  *
- * @return {Object} Object containing the store's selectors.
+ * @return {SelectFunction} Object containing the store's selectors.
  */
 export const select = defaultRegistry.select;
 
@@ -118,7 +118,7 @@ export const select = defaultRegistry.select;
  * resolveSelect( myCustomStore ).getPrice( 'hammer' ).then(console.log)
  * ```
  *
- * @return {Object} Object containing the store's promise-wrapped selectors.
+ * @return {StoreDescriptor} Object containing the store's promise-wrapped selectors.
  */
 export const resolveSelect = defaultRegistry.resolveSelect;
 
@@ -153,7 +153,7 @@ export const suspendSelect = defaultRegistry.suspendSelect;
  *
  * dispatch( myCustomStore ).setPrice( 'hammer', 9.75 );
  * ```
- * @return {Object} Object containing the action creators.
+ * @return {StoreDescriptor} Object containing the action creators.
  */
 export const dispatch = defaultRegistry.dispatch;
 
@@ -189,7 +189,7 @@ export const subscribe = defaultRegistry.subscribe;
  * @deprecated Use `register( storeDescriptor )` instead.
  *
  * @param {string} name  Store registry name.
- * @param {Object} store Store instance (`{ getSelectors, getActions, subscribe }`).
+ * @param {StoreInstance} store Store instance (`{ getSelectors, getActions, subscribe }`).
  */
 export const registerGenericStore = defaultRegistry.registerGenericStore;
 
@@ -201,7 +201,7 @@ export const registerGenericStore = defaultRegistry.registerGenericStore;
  * @param {string} storeName Unique namespace identifier for the store.
  * @param {Object} options   Store description (reducer, actions, selectors, resolvers).
  *
- * @return {Object} Registered store object.
+ * @return {StoreDescriptor} Registered store object.
  */
 export const registerStore = defaultRegistry.registerStore;
 

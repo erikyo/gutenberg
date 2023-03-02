@@ -16,6 +16,8 @@ import coreDataStore from './store';
 import { createEmitter } from './utils/emitter';
 
 /** @typedef {import('./types').StoreDescriptor} StoreDescriptor */
+/** @typedef {import('./types').Store} Store */
+/** @typedef {import('./types').Dispatch} Dispatch */
 
 /**
  * @typedef {Object} WPDataRegistry An isolated orchestrator of store registrations.
@@ -69,6 +71,7 @@ export function createRegistry( storeConfigs = {}, parent = null ) {
 		emitter.emit();
 	}
 
+	/** @typedef {import('./types').Unsubscribe} Unsubscribe */
 	/**
 	 * Subscribe to changes to any data, either in all stores in registry, or
 	 * in one specific store.
@@ -76,7 +79,7 @@ export function createRegistry( storeConfigs = {}, parent = null ) {
 	 * @param {Function}                listener              Listener function.
 	 * @param {string|StoreDescriptor?} storeNameOrDescriptor Optional store name.
 	 *
-	 * @return {Function} Unsubscribe function.
+	 * @return {Unsubscribe} Unsubscribe function.
 	 */
 	const subscribe = ( listener, storeNameOrDescriptor ) => {
 		// subscribe to all stores
@@ -108,7 +111,7 @@ export function createRegistry( storeConfigs = {}, parent = null ) {
 	 * @param {string|StoreDescriptor} storeNameOrDescriptor Unique namespace identifier for the store
 	 *                                                       or the store descriptor.
 	 *
-	 * @return {*} The selector's returned value.
+	 * @return {StoreInstance} The selector's returned value.
 	 */
 	function select( storeNameOrDescriptor ) {
 		const storeName = getStoreName( storeNameOrDescriptor );
@@ -140,7 +143,7 @@ export function createRegistry( storeConfigs = {}, parent = null ) {
 	 *                                                       convention of passing the store name is
 	 *                                                       also supported.
 	 *
-	 * @return {Object} Each key of the object matches the name of a selector.
+	 * @return {StoreInstance} Each key of the object matches the name of a selector.
 	 */
 	function resolveSelect( storeNameOrDescriptor ) {
 		const storeName = getStoreName( storeNameOrDescriptor );
@@ -181,7 +184,8 @@ export function createRegistry( storeConfigs = {}, parent = null ) {
 	 * @param {string|StoreDescriptor} storeNameOrDescriptor Unique namespace identifier for the store
 	 *                                                       or the store descriptor.
 	 *
-	 * @return {*} The action's returned value.
+	 *
+	 * @return {Dispatch<A>} The action's returned value.
 	 */
 	function dispatch( storeNameOrDescriptor ) {
 		const storeName = getStoreName( storeNameOrDescriptor );
@@ -210,8 +214,8 @@ export function createRegistry( storeConfigs = {}, parent = null ) {
 	/**
 	 * Registers a store instance.
 	 *
-	 * @param {string} name  Store registry name.
-	 * @param {Object} store Store instance object (getSelectors, getActions, subscribe).
+	 * @param {string}                name  Store registry name.
+	 * @param {StoreInstance<Config>} store Store instance object (getSelectors, getActions, subscribe).
 	 */
 	function registerStoreInstance( name, store ) {
 		if ( typeof store.getSelectors !== 'function' ) {
@@ -256,6 +260,10 @@ export function createRegistry( storeConfigs = {}, parent = null ) {
 		registerStoreInstance( store.name, store.instantiate( registry ) );
 	}
 
+	/**
+	 * @param {string}                name
+	 * @param {StoreInstance<Config>} store
+	 */
 	function registerGenericStore( name, store ) {
 		deprecated( 'wp.data.registerGenericStore', {
 			since: '5.9',
@@ -267,10 +275,10 @@ export function createRegistry( storeConfigs = {}, parent = null ) {
 	/**
 	 * Registers a standard `@wordpress/data` store.
 	 *
-	 * @param {string} storeName Unique namespace identifier.
-	 * @param {Object} options   Store description (reducer, actions, selectors, resolvers).
+	 * @param {string}                                       storeName Unique namespace identifier.
+	 * @param {ReduxStoreConfig<*, MapOf<ActionCreator>, *>} options   Store description (reducer, actions, selectors, resolvers).
 	 *
-	 * @return {Object} Registered store object.
+	 * @return {Store} Registered store object.
 	 */
 	function registerStore( storeName, options ) {
 		if ( ! options.reducer ) {

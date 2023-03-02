@@ -10,12 +10,52 @@ export type ActionCreator = Function | Generator;
 export type Resolver = Function | Generator;
 export type Selector = Function;
 
-export type AnyConfig = ReduxStoreConfig< any, any, any >;
+export interface Action< T = any > {
+	type: T;
+}
 
-export interface StoreInstance< Config extends AnyConfig > {
-	getSelectors: () => SelectorsOf< Config >;
-	getActions: () => ActionCreatorsOf< Config >;
-	subscribe: ( listener: () => void ) => () => void;
+export interface AnyAction extends Action {
+	// Allows any extra properties to be defined in an action.
+	[ extraProps: string ]: any;
+}
+
+export interface Dispatch< A extends Action = AnyAction > {
+	< T extends A >( action: T, ...extraArgs: any[] ): T;
+}
+
+export type ListenerCallback = () => void;
+
+export type Reducer< S = any, A extends Action = AnyAction > = (
+	state: S | undefined,
+	action: A
+) => S;
+
+export type Observer< T > = {
+	next?( value: T ): void;
+};
+
+export interface Unsubscribe {
+	(): void;
+}
+
+export type AnyConfig = ReduxStoreConfig< any, {}, CurriedState< AnyAction > >;
+
+export interface StoreInstance<
+	S = any,
+	A extends Action = AnyAction,
+	StateExt extends {} = {}
+> {
+	dispatch: Dispatch< A >;
+
+	getState(): S & StateExt;
+
+	emitter: DataEmitter;
+
+	getSelectors: () => SelectorsOf< AnyConfig >;
+
+	getActions: () => MapOf< ActionCreator >;
+
+	subscribe( listener: ListenerCallback ): Unsubscribe;
 }
 
 export interface StoreDescriptor< Config extends AnyConfig > {
@@ -33,16 +73,15 @@ export interface StoreDescriptor< Config extends AnyConfig > {
 export interface ReduxStoreConfig<
 	State,
 	ActionCreators extends MapOf< ActionCreator >,
-	Selectors
+	Selectors extends AnyAction
 > {
 	initialState?: State;
-	reducer: ( state: any, action: any ) => any;
+	reducer: Reducer;
 	actions?: ActionCreators;
 	resolvers?: MapOf< Resolver >;
 	selectors?: Selectors;
 	controls?: MapOf< Function >;
 }
-
 export type UseSelectReturn< F extends MapSelect | StoreDescriptor< any > > =
 	F extends MapSelect
 		? ReturnType< F >

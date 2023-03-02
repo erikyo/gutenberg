@@ -1,8 +1,14 @@
 /**
  * External dependencies
  */
+/**
+ * External dependencies
+ */
 import { get } from 'lodash';
 
+/**
+ * Internal dependencies
+ */
 /**
  * Internal dependencies
  */

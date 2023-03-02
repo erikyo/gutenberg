@@ -3,6 +3,9 @@
 /**
  * Internal dependencies
  */
+/**
+ * Internal dependencies
+ */
 import { createRegistry } from '../registry';
 import { createRegistrySelector } from '../factory';
 import createReduxStore from '../redux-store';

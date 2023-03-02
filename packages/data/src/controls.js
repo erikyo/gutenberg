@@ -1,6 +1,9 @@
 /**
  * Internal dependencies
  */
+/**
+ * Internal dependencies
+ */
 import { createRegistryControl } from './factory';
 
 /** @typedef {import('./types').StoreDescriptor} StoreDescriptor */
@@ -34,7 +37,7 @@ function isObject( object ) {
  * }
  * ```
  *
- * @return {Object} The control descriptor.
+ * @return {StoreDescriptor} The control descriptor.
  */
 function select( storeNameOrDescriptor, selectorName, ...args ) {
 	return {
@@ -100,7 +103,7 @@ function resolveSelect( storeNameOrDescriptor, selectorName, ...args ) {
  * }
  * ```
  *
- * @return {Object}  The control descriptor.
+ * @return {StoreDescriptor}  The control descriptor.
  */
 function dispatch( storeNameOrDescriptor, actionName, ...args ) {
 	return {
@@ -115,6 +118,11 @@ function dispatch( storeNameOrDescriptor, actionName, ...args ) {
 
 export const controls = { select, resolveSelect, dispatch };
 
+/**
+ * @type {{builtinControls: {[key: string]: any}, controlDescriptors: {[key: string]: any}}}
+ *
+ * @property {Object} builtinControls - The built-in controls.
+ */
 export const builtinControls = {
 	[ SELECT ]: createRegistryControl(
 		( registry ) =>

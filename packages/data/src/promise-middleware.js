@@ -1,6 +1,9 @@
 /**
  * External dependencies
  */
+/**
+ * External dependencies
+ */
 import isPromise from 'is-promise';
 
 /**

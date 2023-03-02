@@ -1,6 +1,9 @@
 /**
  * Internal dependencies
  */
+/**
+ * Internal dependencies
+ */
 import { createRegistry, controls } from '..';
 
 jest.useRealTimers();
